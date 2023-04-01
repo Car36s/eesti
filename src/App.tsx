@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import './App.css'
+import styled from 'styled-components'
 
-const App = () => {
+interface Props {
+    className?: string
+}
+
+const AppComponent = ({ className }: Props) => {
     const [count, setCount] = useState(0)
 
     return (
-        <div className="App">
+        <div className={className}>
             <div>
                 <a href="https://vitejs.dev" target="_blank">
                     <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -27,5 +31,12 @@ const App = () => {
         </div>
     )
 }
+
+const App = styled(AppComponent)({
+    maxWidth: '1280px',
+    margin: '0 auto',
+    padding: '2rem',
+    textAlign: 'center',
+})
 
 export default App
