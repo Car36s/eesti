@@ -2,56 +2,48 @@ import { useCallback, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import * as d3 from 'd3'
 
-import eesti from './assets/geojson/eesti.json'
+import eesti from './assets/geojson/vallad.json'
+import { darkGrayishGreen, grayishGolden } from './lib/colors'
 
 interface Props {
     className?: string
 }
 
-const canvas = {
+const map = {
     width: 1200,
     height: 800,
 }
 
 const AppComponent = ({ className }: Props) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
+    const svgRef = useRef<SVGSVGElement>(null)
 
-    const initMap = useCallback(() => {
-        const ctx = canvasRef.current?.getContext('2d')
-
-        if (!ctx) return
-
+    const initSvgMap = useCallback(() => {
         const projection = d3
             .geoMercator()
             .center([25, 58.7])
-            .translate([canvas.width / 2, canvas.height / 2])
+            .translate([map.width / 2, map.height / 2])
             .scale(9000)
 
-        const pathGenerator = d3.geoPath(projection, ctx)
+        const path = d3.geoPath(projection)
 
-        // initialize the path
-        ctx.beginPath()
-
-        // Got the positions of the path
-        pathGenerator(eesti as d3.GeoPermissibleObjects)
-
-        // Fill the paths
-        ctx.fillStyle = '#999'
-        ctx.fill()
-
-        // Add stroke
-        ctx.strokeStyle = '#69b3a2'
-        ctx.stroke()
+        d3.select('#svg-map g')
+            .selectAll('path')
+            .data(eesti.features)
+            .attr('class', (data) => data.properties.OKOOD) // add classNames
+            .join('path')
+            // @ts-expect-error TBI - Property 'geometries' is missing in type
+            .attr('d', path)
     }, [])
 
     useEffect(() => {
-        initMap()
-    }, [initMap])
+        initSvgMap()
+    }, [initSvgMap])
 
     return (
         <div className={className}>
-            <div id="map" />
-            <canvas id="canvas" ref={canvasRef} width={canvas.width} height={canvas.height} />
+            <svg id="svg-map" ref={svgRef} width={map.width} height={map.height}>
+                <g />
+            </svg>
         </div>
     )
 }
@@ -60,6 +52,11 @@ const App = styled(AppComponent)({
     maxWidth: '1280px',
     margin: 'auto',
     textAlign: 'center',
+
+    svg: {
+        fill: darkGrayishGreen,
+        stroke: grayishGolden,
+    },
 })
 
 export default App
