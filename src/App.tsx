@@ -1,41 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useCallback, useEffect, useRef } from 'react'
 import styled from 'styled-components'
+import * as d3 from 'd3'
+
+import eesti from './assets/geojson/eesti.json'
 
 interface Props {
     className?: string
 }
 
+const canvas = {
+    width: 1200,
+    height: 800,
+}
+
 const AppComponent = ({ className }: Props) => {
-    const [count, setCount] = useState(0)
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+
+    const initMap = useCallback(() => {
+        const ctx = canvasRef.current?.getContext('2d')
+
+        if (!ctx) return
+
+        const projection = d3
+            .geoMercator()
+            .center([25, 58.7])
+            .translate([canvas.width / 2, canvas.height / 2])
+            .scale(9000)
+
+        const pathGenerator = d3.geoPath(projection, ctx)
+
+        // initialize the path
+        ctx.beginPath()
+
+        // Got the positions of the path
+        pathGenerator(eesti as d3.GeoPermissibleObjects)
+
+        // Fill the paths
+        ctx.fillStyle = '#999'
+        ctx.fill()
+
+        // Add stroke
+        ctx.strokeStyle = '#69b3a2'
+        ctx.stroke()
+    }, [])
+
+    useEffect(() => {
+        initMap()
+    }, [initMap])
 
     return (
         <div className={className}>
-            <div>
-                <a href="https://vitejs.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://reactjs.org" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo" />
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
+            <div id="map" />
+            <canvas id="canvas" ref={canvasRef} width={canvas.width} height={canvas.height} />
         </div>
     )
 }
 
 const App = styled(AppComponent)({
     maxWidth: '1280px',
-    margin: '0 auto',
-    padding: '2rem',
+    margin: 'auto',
     textAlign: 'center',
 })
 
